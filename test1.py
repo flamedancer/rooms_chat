@@ -56,7 +56,6 @@ def application(env, sr):
         
         while True:
             ready = gevent.select.select([websocket_fd, redis_fd], [], [], 4.0)
-            print ready
             if not ready[0]:
                 try:
                     msg =  uwsgi.websocket_recv_nb()
