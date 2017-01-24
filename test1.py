@@ -8,6 +8,14 @@ import datetime
 import json
 from json import dumps
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG,
+                format='%(asctime)s %(message)s',
+                datefmt='%Y %H:%M:%S',
+                filename='chat.log',
+                filemode='a')
+
 all_users_info = {} 
 
 redis_conf = {
@@ -18,10 +26,17 @@ redis_conf = {
 
 COMMON_ROOM_ID = 'ALL'
 
-with open("js_test1.js") as js_f:
+with open("index.html") as js_f:
     HTML = js_f.read()
 
+history_msg = []
 channels = []
+
+def add_history(msg):
+    global history_msg
+    history_msg.append(msg)
+    if len(history_msg) > 100:
+        history_msg = history_msg[-100:]
 
 def application(env, sr):
     
@@ -84,11 +99,12 @@ def application(env, sr):
                             if msg_dict['u'].strip(): 
                                 all_users_info[core_id]['user_name'] = msg_dict['u']
                             else:
-                                all_users_info[core_id]['user_name'] = u'我是无名氏' + str(core_id) 
+                                all_users_info[core_id]['user_name'] = u'游客' + str(core_id) 
                             response = get_response_user_msg(c=msg_dict['c'])
                             redis_com.publish(COMMON_ROOM_ID, dumps(response))
                             response['uname'] = all_users_info[core_id]['user_name']
                             response['self_id'] = core_id
+                            response['history_msg'] = history_msg
                             uwsgi.websocket_send(dumps(response))
                         elif msg_dict['c'] == 'chat':
                             chat_msg = msg_dict['m'].strip()
@@ -113,6 +129,8 @@ def application(env, sr):
                                 'c': 'chat', 
                                 'channel': now_channel, 
                             }
+                            add_history(response)
+                            logging.info(response['uname'] +" :\n    " + response['msg'] )
                             response = dumps(response)
                             s = redis_com.publish(now_channel, response)
                             print "why no send", s

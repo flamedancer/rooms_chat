@@ -28,14 +28,15 @@
             #userlist .users {}
             #userlist .selected {color:red}
         </style>
-
-
+        <script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
+        <script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.js"></script>
 
         <script language="Javascript">
-            var s = new WebSocket("%s://%s/foobar/");
+            var s = new WebSocket("ws://42.96.168.85:9080/foobar/");
             s.onopen = function() {
                 //alert("connected !!!");
-                s.send('{"u":"'+document.getElementById('myname').innerHTML+'","c":"s"}');
+                var uname = $.cookie('uname') || "";
+                s.send('{"u":"'+uname+'","c":"s"}');
             };
 
             var room_chat_str = new Array();
@@ -70,7 +71,12 @@
                     };
                     ulist.innerHTML = append_cont; 
 
-
+                    for (var _index in obj.history_msg) {
+                        var _msg = obj.history_msg[_index]; 
+                        var new_cont = assemb_msg(_msg)
+                        room_chat_str["ALL"] = new_cont;
+                        add_hall_msg(new_cont);
+                    }
 
                     var now_all_users = document.getElementsByClassName('users');
                     //for(now_user_index in now_all_users) {
@@ -100,18 +106,8 @@
                     }
                     //alert(opp);
 
-                    var old_chat_cont = room_chat_str[opp];
-                    if(typeof old_chat_cont == 'undefined') {
-                        old_chat_cont = '';
-                    }
                         
-                    var chat_name = obj.uname;
-                    var chat_time = obj.time;
-                    var chat_msg = obj.msg; 
-                    var head_cont = '\n'+chat_name+'  '+chat_time+' :';
-                    var chat_cont = '\n'+'   '+obj.msg;
-                    
-                    var new_cont = old_chat_cont+head_cont+chat_cont;
+                    var new_cont = assemb_msg(obj);
                     room_chat_str[opp] = new_cont;
 
                     //var old_chat_cont = chatbox_obj.innerHTML; 
@@ -122,9 +118,7 @@
                     //var chat_cont = '\n'+'   '+obj.msg;
                     //chatbox_obj.innerHTML = old_chat_cont+head_cont+chat_cont;
                     if(opp==this_chater) {
-                        var chatbox_obj = document.getElementById('chatbox');
-                        chatbox_obj.innerHTML = new_cont;
-                        chatbox_obj.scrollTop=chatbox_obj.value.length;
+                        add_hall_msg(new_cont);
                     }
                     else {
                         var all_users = document.getElementsByClassName('users');
@@ -159,6 +153,7 @@
 
             function rename() {
                 var value = document.getElementById('myname').value;
+                $.cookie('uname', value, { expires: 700 });
                 s.send('{"u":"'+value+'","c":"rn"}');
             };
             function send_msg() {
@@ -206,6 +201,29 @@
 
             
             };
+
+            function assemb_msg(obj) {
+                var opp='ALL'
+                var old_chat_cont = room_chat_str[opp];
+                if(typeof old_chat_cont == 'undefined') {
+                    old_chat_cont = '';
+                }
+                var chat_name = obj.uname;
+                var chat_time = obj.time;
+                var chat_msg = obj.msg; 
+                var head_cont = '\n'+chat_name+'  '+chat_time+' :';
+                var chat_cont = '\n'+'   '+obj.msg;
+                
+                var new_cont = old_chat_cont+head_cont+chat_cont;
+                return new_cont;
+            }
+
+            function add_hall_msg(msg) {
+                var chatbox_obj = document.getElementById('chatbox');
+                chatbox_obj.innerHTML = msg;
+                chatbox_obj.scrollTop=chatbox_obj.value.length;
+
+            }
 
         </script>
     </head>
