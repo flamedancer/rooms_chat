@@ -68,6 +68,7 @@ def application(env, sr):
         all_users_info[core_id] = {'redis_channel': channel}
 
         print "#########################websockets...", core_id
+        print "REMOTE_ADDR:", env['REMOTE_ADDR']
         
         while True:
             ready = gevent.select.select([websocket_fd, redis_fd], [], [], 4.0)
@@ -104,7 +105,8 @@ def application(env, sr):
                             redis_com.publish(COMMON_ROOM_ID, dumps(response))
                             response['uname'] = all_users_info[core_id]['user_name']
                             response['self_id'] = core_id
-                            response['history_msg'] = history_msg
+                            if msg_dict['c'] == 's':
+                                response['history_msg'] = history_msg
                             uwsgi.websocket_send(dumps(response))
                         elif msg_dict['c'] == 'chat':
                             chat_msg = msg_dict['m'].strip()

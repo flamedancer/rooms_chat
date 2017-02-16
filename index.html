@@ -32,7 +32,7 @@
         <script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.js"></script>
 
         <script language="Javascript">
-            var s = new WebSocket("ws://42.96.168.85:9080/foobar/");
+            var s = new WebSocket("ws://flamedancer.online:9080/foobar/");
             s.onopen = function() {
                 //alert("connected !!!");
                 var uname = $.cookie('uname') || "";
@@ -73,7 +73,7 @@
 
                     for (var _index in obj.history_msg) {
                         var _msg = obj.history_msg[_index]; 
-                        var new_cont = assemb_msg(_msg)
+                        var new_cont = assemb_msg(_msg, 'ALL')
                         room_chat_str["ALL"] = new_cont;
                         add_hall_msg(new_cont);
                     }
@@ -107,7 +107,7 @@
                     //alert(opp);
 
                         
-                    var new_cont = assemb_msg(obj);
+                    var new_cont = assemb_msg(obj, opp);
                     room_chat_str[opp] = new_cont;
 
                     //var old_chat_cont = chatbox_obj.innerHTML; 
@@ -202,8 +202,8 @@
             
             };
 
-            function assemb_msg(obj) {
-                var opp='ALL'
+            function assemb_msg(obj, opp) {
+                var opp= opp || 'ALL';
                 var old_chat_cont = room_chat_str[opp];
                 if(typeof old_chat_cont == 'undefined') {
                     old_chat_cont = '';
